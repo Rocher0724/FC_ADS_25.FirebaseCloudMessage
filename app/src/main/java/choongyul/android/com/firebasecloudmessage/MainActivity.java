@@ -2,6 +2,7 @@ package choongyul.android.com.firebasecloudmessage;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,6 +24,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,13 +72,70 @@ public class MainActivity extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         userRef = database.getReference("user");
     }
+    String result = "";
 
     public void sendNotification (View view) {
-        String msg = etMessage.getText().toString();
+        final String msg = etMessage.getText().toString();
+        final String token = (String) tvToken.getText();
 
-        if(!"".equals(msg)) { // 입력값이 있을때만 날려주기 위함.
+        if("".equals(msg)) { // 입력값이 있을때만 날려주기 위함.
+            Toast.makeText(this, "메시지를 입력해주세요.", Toast.LENGTH_SHORT).show();
+        } else if("".equals(token)){ //
+            Toast.makeText(this, "상대방을 정해주세요", Toast.LENGTH_SHORT).show();
+        } else {
+            new AsyncTask<Void,Void,String >() {
+                @Override
+                protected String doInBackground(Void... params) {
+                    result = "메시지를 전송하였습니다.";
+
+                    // 1. fcm 서버정보 세팅
+                    String server_url = "http://192.168.1.190:8080/sendMsgToFCM.jsp";
+                    // 2. POST message 세팅
+                    String post_data = "receiver_token="+token+"&msg="+msg;
+
+                    // 3. HttpUrlConnection 을 사용해서 FCM 서버측으로 메시지를 전송한다.
+                    // 		a. 서버연결
+                    try {
+                        URL url = new URL(server_url);
+                        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                        //		b.header 설정
+                        con.setRequestMethod("POST");
+                        //		c.POST데이터(body) 전송
+                        con.setDoOutput(true);
+                        OutputStream os = con.getOutputStream();
+                        os.write(post_data.getBytes());
+                        os.flush();
+                        os.close();
+                        //		d.전송후 결과처리
+                        int responseCode = con.getResponseCode();
+                        if (responseCode == HttpURLConnection.HTTP_OK) { // code 200 이 HTTP_OK 의 코드이다.
+                            // 결과 처리 후 FCM 서버측에서 발송한 결과 메시지를 꺼낸다.
+                            BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                            // 4.2 반복문은 돌면서 버퍼의 데이터를 읽어온다.
+                            String dataLine = "";
+                            // 메시지를 한줄씩 읽어서 result변수에 담아두고
+                            while ((dataLine = br.readLine()) != null) {
+                                result = result + dataLine;
+                            }
+                            br.close();
+                        }
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(String s) {
+                    super.onPostExecute(s);
+                    Toast.makeText(MainActivity.this, result, Toast.LENGTH_SHORT).show();
+                }
+            }.execute();
+
 
         }
+
     }
     public void signIn(View view){
         final String id = etID.getText().toString();

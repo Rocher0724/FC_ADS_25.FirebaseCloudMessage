@@ -75,8 +75,10 @@ public class MainActivity extends AppCompatActivity {
     String result = "";
 
     public void sendNotification (View view) {
+
+        final String sender = etID.getText().toString();
         final String msg = etMessage.getText().toString();
-        final String token = (String) tvToken.getText();
+        final String token = tvToken.getText().toString();
 
         if("".equals(msg)) { // 입력값이 있을때만 날려주기 위함.
             Toast.makeText(this, "메시지를 입력해주세요.", Toast.LENGTH_SHORT).show();
@@ -89,9 +91,9 @@ public class MainActivity extends AppCompatActivity {
                     result = "메시지를 전송하였습니다.";
 
                     // 1. fcm 서버정보 세팅
-                    String server_url = "http://192.168.1.190:8080/sendMsgToFCM.jsp";
+                    String server_url = "http://192.168.1.190:8080/fcm/sender";
                     // 2. POST message 세팅
-                    String post_data = "receiver_token="+token+"&msg="+msg;
+                    String post_data = "receiver_token="+token+"&msg="+msg+"&sender="+sender;
 
                     // 3. HttpUrlConnection 을 사용해서 FCM 서버측으로 메시지를 전송한다.
                     // 		a. 서버연결

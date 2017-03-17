@@ -13,10 +13,20 @@ String server_key = "AAAAtiwdICo:APA91bFjxgcFrcbEmmlIcfes6ON0X5qeYHIZerOTrnSWGRU
 request.setCharacterEncoding("UTF-8"); // 요청값이 한글일 경우 처리
 String receiver_token 	= request.getParameter("receiver_token");
 String msg				= request.getParameter("msg");
+String sender			= request.getParameter("sender");
+String title			= "보낸사람 : "+sender;
+String point = "576434397";
 
 // 3. fcm 서버로 메시지를 전송
 // 3.1 수신한 메시지를 json 형태로 변경해준다.
-String json_string = "{\"to\": \"" + receiver_token +"\", \"notification\": { \"title\" : \"fcm test\" , \"body\": \"" + msg + "\"}}";
+// 노티를 구성하는 것을 서버에서 한다.
+String json_string = "{\"to\": \"" + receiver_token + "\""
+                   + ",\"data\" : { \"point\" : \"" + point + "\" }"
+                   + ",\"notification\": { \"title\":\"" + title + "\""
+                                        + ", \"body\": \"" + msg + "\""
+                                        + ", \"click_action\" : \"PointActivity\"}"
+                                        +"}";
+
 // 3.2 HttpUrlConnection 을 사용해서 FCM 서버측으로 메시지를 전송한다.
 // 		a. 서버연결
 URL url = new URL(fcm_url);

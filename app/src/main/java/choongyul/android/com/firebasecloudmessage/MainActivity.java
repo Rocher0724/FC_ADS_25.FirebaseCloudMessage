@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 datas.clear();
-                for(DataSnapshot data: dataSnapshot.getChildren() ){
+                for(DataSnapshot data : dataSnapshot.getChildren() ){
                     User user = data.getValue(User.class);
                     user.setId(data.getKey());
                     datas.add(user);
